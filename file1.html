@@ -3,14 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Sync | Timer & Countdown</title>
+    <title>Study Sync | Mode Toggle</title>
     <style>
+        /* CSS Variables - These change when the theme toggles */
         :root {
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --accent: #0ea5e9;
+            --text: #1e293b;
+            --sub-text: #64748b;
+            --border: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
             --bg: #0f172a;
             --card: #1e293b;
             --accent: #38bdf8;
             --text: #f8fafc;
-            --danger: #fb7185;
+            --sub-text: #94a3b8;
+            --border: #334155;
         }
 
         body {
@@ -23,71 +34,120 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
+        /* Theme Toggle Switch */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            top: 20px;
+            right: 20px;
         }
+
+        .theme-switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 60px;
+        }
+
+        .theme-switch input { display: none; }
+
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            background-color: white;
+            bottom: 4px;
+            content: "";
+            height: 26px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 26px;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* General UI */
+        .container { width: 100%; max-width: 500px; margin-top: 60px; }
 
         .card {
             background: var(--card);
             padding: 2rem;
             border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             margin-bottom: 2rem;
             text-align: center;
+            border: 1px solid var(--border);
+            transition: background-color 0.3s ease;
         }
 
-        h2 { margin-top: 0; color: var(--accent); }
+        h2 { margin-top: 0; color: var(--accent); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Countdown Styles */
         #exam-timer {
             font-size: 1.5rem;
             font-weight: bold;
             display: flex;
             justify-content: space-around;
+            margin-top: 15px;
         }
 
-        .unit { font-size: 0.8rem; color: #94a3b8; display: block; }
+        .unit { font-size: 0.7rem; color: var(--sub-text); display: block; text-transform: uppercase; }
 
-        /* Pomodoro Styles */
         .timer-display {
-            font-size: 4rem;
+            font-size: 5rem;
             font-weight: 800;
             margin: 1rem 0;
-            font-variant-numeric: tabular-nums;
+            font-family: monospace;
         }
 
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
+        .btn-group { display: flex; gap: 15px; justify-content: center; }
 
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
-            transition: opacity 0.2s;
+            font-weight: 700;
+            transition: all 0.2s ease;
         }
 
-        .start { background: var(--accent); color: var(--bg); }
-        .reset { background: #475569; color: white; }
+        .start { background: var(--accent); color: white; }
+        .reset { background: var(--sub-text); color: white; }
         
         input[type="date"] {
-            background: #334155;
+            background: var(--bg);
             border: 1px solid var(--accent);
-            color: white;
-            padding: 5px;
-            border-radius: 4px;
+            color: var(--text);
+            padding: 8px;
+            border-radius: 6px;
             margin-bottom: 10px;
         }
     </style>
 </head>
-<body>
+<body data-theme="light">
+
+    <div class="theme-switch-wrapper">
+        <span style="margin-right: 10px; font-size: 0.8rem; font-weight: bold;">DARK MODE</span>
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider"></div>
+        </label>
+    </div>
 
     <div class="container">
         <div class="card">
@@ -97,46 +157,81 @@
                 <div><span id="days">00</span><span class="unit">Days</span></div>
                 <div><span id="hours">00</span><span class="unit">Hours</span></div>
                 <div><span id="mins">00</span><span class="unit">Mins</span></div>
+                <div><span id="secs">00</span><span class="unit">Secs</span></div>
             </div>
         </div>
 
         <div class="card">
-            <h2>Pomodoro Study Timer</h2>
-            <div id="status">Focus Time</div>
+            <h2>Focus Session</h2>
+            <div id="status" style="color: var(--sub-text); font-weight: bold;">READY?</div>
             <div class="timer-display" id="pomodoro-display">25:00</div>
             <div class="btn-group">
-                <button class="start" onclick="toggleTimer()" id="start-btn">Start</button>
-                <button class="reset" onclick="resetTimer()">Reset</button>
+                <button class="start" onclick="toggleTimer()" id="start-btn">START</button>
+                <button class="reset" onclick="resetTimer()">RESET</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Exam Countdown Logic ---
-        let targetDate = new Date();
-        targetDate.setDate(targetDate.getDate() + 7); // Default to 7 days from now
-
-        function updateTargetDate() {
-            const val = document.getElementById('exam-date').value;
-            if(val) targetDate = new Date(val);
+        // --- Theme Toggle Logic ---
+        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+        
+        function switchTheme(e) {
+            if (e.target.checked) {
+                document.body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }    
         }
 
+        toggleSwitch.addEventListener('change', switchTheme, false);
+
+        // Check for saved theme on load
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme) {
+            document.body.setAttribute('data-theme', currentTheme);
+            if (currentTheme === 'dark') {
+                toggleSwitch.checked = true;
+            }
+        }
+
+        // --- Exam Countdown Logic ---
+        let targetDate = null;
+        function updateTargetDate() {
+            const val = document.getElementById('exam-date').value;
+            if(val) {
+                targetDate = new Date(val);
+                localStorage.setItem('savedExamDate', val);
+            }
+        }
+
+        window.onload = () => {
+            const saved = localStorage.getItem('savedExamDate');
+            if(saved) {
+                document.getElementById('exam-date').value = saved;
+                targetDate = new Date(saved);
+            }
+        };
+
         function updateCountdown() {
+            if (!targetDate) return;
             const now = new Date();
             const diff = targetDate - now;
-
             if (diff <= 0) {
-                document.getElementById('exam-timer').innerHTML = "Exam Day!";
+                document.getElementById('exam-timer').innerHTML = "EXAM DAY!";
                 return;
             }
-
             const d = Math.floor(diff / (1000 * 60 * 60 * 24));
             const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const m = Math.floor((diff / 1000 / 60) % 60);
+            const s = Math.floor((diff / 1000) % 60);
 
             document.getElementById('days').innerText = d.toString().padStart(2, '0');
             document.getElementById('hours').innerText = h.toString().padStart(2, '0');
             document.getElementById('mins').innerText = m.toString().padStart(2, '0');
+            document.getElementById('secs').innerText = s.toString().padStart(2, '0');
         }
 
         // --- Pomodoro Logic ---
@@ -155,18 +250,18 @@
             const btn = document.getElementById('start-btn');
             if (isRunning) {
                 clearInterval(timerId);
-                btn.innerText = "Start";
+                btn.innerText = "START";
             } else {
                 timerId = setInterval(() => {
                     timeLeft--;
                     updatePomodoroDisplay();
                     if (timeLeft <= 0) {
                         clearInterval(timerId);
-                        alert("Time's up! Take a break.");
+                        alert("Session complete!");
                         resetTimer();
                     }
                 }, 1000);
-                btn.innerText = "Pause";
+                btn.innerText = "PAUSE";
             }
             isRunning = !isRunning;
         }
@@ -176,12 +271,10 @@
             isRunning = false;
             timeLeft = 25 * 60;
             updatePomodoroDisplay();
-            document.getElementById('start-btn').innerText = "Start";
+            document.getElementById('start-btn').innerText = "START";
         }
 
-        // Initialize
         setInterval(updateCountdown, 1000);
-        updatePomodoroDisplay();
     </script>
 </body>
 </html>
