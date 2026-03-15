@@ -82,6 +82,74 @@
         input:checked + .slider { background-color: var(--accent); }
         input:checked + .slider:before { transform: translateX(26px); }
 
+        /* Timetable Styles */
+        .timetable-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .timetable-table th, .timetable-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .timetable-table th {
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .add-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-form input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .add-form button {
+            grid-column: span 2;
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+
+        .set-btn {
+            background: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.7rem;
+            border-radius: 4px;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+
+        /* Icon Styles */
+        #theme-icon-sun, #theme-icon-moon {
+            color: var(--text);
+            transition: color 0.3s ease;
+        }
+
+        [data-theme="dark"] #theme-icon-sun { display: none; }
+        [data-theme="dark"] #theme-icon-moon { display: block; }
+
+        [data-theme="light"] #theme-icon-sun { display: block; }
+        [data-theme="light"] #theme-icon-moon { display: none; }
+
         /* General UI */
         .container { width: 100%; max-width: 500px; margin-top: 60px; }
 
@@ -127,6 +195,7 @@
         }
 
         .start { background: var(--accent); color: white; }
+        .pause { background: #f59e0b; color: white; }
         .reset { background: var(--sub-text); color: white; }
         
         input[type="date"] {
@@ -142,7 +211,10 @@
 <body data-theme="light">
 
     <div class="theme-switch-wrapper">
-        <span style="margin-right: 10px; font-size: 0.8rem; font-weight: bold;">DARK MODE</span>
+        <div class="theme-icon-container" style="margin-right: 10px; display: flex; align-items: center;">
+            <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </div>
         <label class="theme-switch" for="checkbox">
             <input type="checkbox" id="checkbox" />
             <div class="slider"></div>
@@ -150,25 +222,58 @@
     </div>
 
     <div class="container">
-        <div class="card">
-            <h2>Exam Countdown</h2>
-            <input type="date" id="exam-date" onchange="updateTargetDate()">
-            <div id="exam-timer">
-                <div><span id="days">00</span><span class="unit">Days</span></div>
-                <div><span id="hours">00</span><span class="unit">Hours</span></div>
-                <div><span id="mins">00</span><span class="unit">Mins</span></div>
-                <div><span id="secs">00</span><span class="unit">Secs</span></div>
-            </div>
-        </div>
-
+        <!-- Focus Session Card -->
         <div class="card">
             <h2>Focus Session</h2>
             <div id="status" style="color: var(--sub-text); font-weight: bold;">READY?</div>
             <div class="timer-display" id="pomodoro-display">25:00</div>
             <div class="btn-group">
-                <button class="start" onclick="toggleTimer()" id="start-btn">START</button>
+                <button class="start" onclick="startTimer()" id="start-btn">START</button>
+                <button class="pause" onclick="pauseTimer()" id="pause-btn">PAUSE</button>
                 <button class="reset" onclick="resetTimer()">RESET</button>
             </div>
+        </div>
+
+        <!-- Combined Exam Planner Card -->
+        <div class="card">
+            <h2>Exam Planner</h2>
+            
+            <!-- Active Countdown Display -->
+            <div id="active-exam-container" style="margin-bottom: 2rem; display: none;">
+                <h3 id="active-subject-name" style="color: var(--accent); margin-bottom: 5px;"></h3>
+                <div id="exam-timer">
+                    <div><span id="days">00</span><span class="unit">Days</span></div>
+                    <div><span id="hours">00</span><span class="unit">Hours</span></div>
+                    <div><span id="mins">00</span><span class="unit">Mins</span></div>
+                    <div><span id="secs">00</span><span class="unit">Secs</span></div>
+                </div>
+            </div>
+
+            <div class="add-form">
+                <input type="text" id="tt-subject" placeholder="Subject Name">
+                <input type="date" id="tt-date">
+                <div style="grid-column: span 2; display: flex; gap: 5px; margin-bottom: 10px;">
+                    <select id="tt-hour" style="flex: 2; background: var(--bg); border: 1px solid var(--accent); color: var(--text); padding: 8px; border-radius: 6px;"></select>
+                    <select id="tt-min" style="flex: 2; background: var(--bg); border: 1px solid var(--accent); color: var(--text); padding: 8px; border-radius: 6px;"></select>
+                    <select id="tt-ampm" style="flex: 1; background: var(--bg); border: 1px solid var(--accent); color: var(--text); padding: 8px; border-radius: 6px;">
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+                <button class="start" onclick="addTimetableItem()">ADD & START COUNTDOWN</button>
+            </div>
+
+            <table class="timetable-table">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Date/Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="timetable-body">
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -197,32 +302,136 @@
             }
         }
 
-        // --- Exam Countdown Logic ---
+        // --- Planner & Timetable Logic ---
+        let timetable = JSON.parse(localStorage.getItem('timetable')) || [];
         let targetDate = null;
-        function updateTargetDate() {
-            const val = document.getElementById('exam-date').value;
-            if(val) {
-                targetDate = new Date(val);
-                localStorage.setItem('savedExamDate', val);
+        let activeSubject = '';
+
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('tt-date').setAttribute('min', today);
+
+        function populateTimeSelectors() {
+            const hourSelect = document.getElementById('tt-hour');
+            const minSelect = document.getElementById('tt-min');
+            
+            // 12-Hour format
+            for (let i = 1; i <= 12; i++) {
+                let opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = i + ' (Hour)';
+                hourSelect.appendChild(opt);
+            }
+            
+            for (let i = 0; i < 60; i++) {
+                let opt = document.createElement('option');
+                let val = i.toString().padStart(2, '0');
+                opt.value = val;
+                opt.textContent = val + ' (Min)';
+                minSelect.appendChild(opt);
             }
         }
 
-        window.onload = () => {
-            const saved = localStorage.getItem('savedExamDate');
-            if(saved) {
-                document.getElementById('exam-date').value = saved;
-                targetDate = new Date(saved);
+        function addTimetableItem() {
+            const subject = document.getElementById('tt-subject').value;
+            const date = document.getElementById('tt-date').value;
+            const hour = document.getElementById('tt-hour').value;
+            const min = document.getElementById('tt-min').value;
+            const ampm = document.getElementById('tt-ampm').value;
+            const displayTime = `${hour}:${min} ${ampm}`;
+
+            if (!subject || !date) {
+                alert("Please fill all fields");
+                return;
             }
-        };
+
+            // Convert to 24h for Date object
+            let h24 = parseInt(hour);
+            if (ampm === 'PM' && h24 < 12) h24 += 12;
+            if (ampm === 'AM' && h24 === 12) h24 = 0;
+            const time24 = `${h24.toString().padStart(2, '0')}:${min}`;
+
+            // Double check past date/time
+            const selectedDateTime = new Date(`${date}T${time24}`);
+            if (selectedDateTime < new Date()) {
+                alert("Please select a future date and time.");
+                return;
+            }
+
+            const item = { id: Date.now(), subject, date, time: displayTime, time24 };
+            timetable.push(item);
+            localStorage.setItem('timetable', JSON.stringify(timetable));
+            renderTimetable();
+            
+            // Start countdown immediately for the added item
+            setCountdownFromTimetable(subject, date, time24);
+
+            // Clear inputs
+            document.getElementById('tt-subject').value = '';
+            document.getElementById('tt-date').value = '';
+        }
+
+        function deleteTimetableItem(id) {
+            timetable = timetable.filter(item => item.id !== id);
+            localStorage.setItem('timetable', JSON.stringify(timetable));
+            renderTimetable();
+        }
+
+        function setCountdownFromTimetable(subject, date, time24) {
+            const combined = `${date}T${time24}`;
+            targetDate = new Date(combined);
+            activeSubject = subject;
+            
+            localStorage.setItem('activeSubject', subject);
+            localStorage.setItem('savedExamDate', date);
+            localStorage.setItem('savedExamTime24', time24);
+            
+            document.getElementById('active-exam-container').style.display = 'block';
+            document.getElementById('active-subject-name').innerText = `COUNTDOWN: ${subject}`;
+            updateCountdown();
+            
+            // Scroll to top to see countdown
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderTimetable() {
+            const body = document.getElementById('timetable-body');
+            body.innerHTML = '';
+            timetable.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.subject}</td>
+                    <td style="font-size: 0.8rem;">${item.date}<br>${item.time}</td>
+                    <td>
+                        <button class="set-btn" onclick="setCountdownFromTimetable('${item.subject}', '${item.date}', '${item.time24}')">START</button>
+                        <button class="delete-btn" onclick="deleteTimetableItem(${item.id})">×</button>
+                    </td>
+                `;
+                body.appendChild(row);
+            });
+        }
 
         function updateCountdown() {
             if (!targetDate) return;
             const now = new Date();
             const diff = targetDate - now;
+            
+            const timerDiv = document.getElementById('exam-timer');
             if (diff <= 0) {
-                document.getElementById('exam-timer').innerHTML = "EXAM DAY!";
+                timerDiv.innerHTML = "<div style='font-size: 1.2rem; color: #ef4444; width: 100%;'>EXAM STARTED!</div>";
                 return;
             }
+
+            // Restore structure if it was changed by "EXAM STARTED!"
+            if (timerDiv.innerHTML.includes("EXAM STARTED!")) {
+                timerDiv.innerHTML = `
+                    <div><span id="days">00</span><span class="unit">Days</span></div>
+                    <div><span id="hours">00</span><span class="unit">Hours</span></div>
+                    <div><span id="mins">00</span><span class="unit">Mins</span></div>
+                    <div><span id="secs">00</span><span class="unit">Secs</span></div>
+                `;
+            }
+
             const d = Math.floor(diff / (1000 * 60 * 60 * 24));
             const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const m = Math.floor((diff / 1000 / 60) % 60);
@@ -234,10 +443,24 @@
             document.getElementById('secs').innerText = s.toString().padStart(2, '0');
         }
 
+        window.onload = () => {
+            populateTimeSelectors();
+            renderTimetable();
+            const savedDate = localStorage.getItem('savedExamDate');
+            const savedTime24 = localStorage.getItem('savedExamTime24');
+            const savedSubject = localStorage.getItem('activeSubject');
+            
+            if(savedDate && savedTime24) {
+                setCountdownFromTimetable(savedSubject, savedDate, savedTime24);
+            }
+        };
+
+        setInterval(updateCountdown, 1000);
+
         // --- Pomodoro Logic ---
         let timeLeft = 25 * 60;
-        let timerId = null;
-        let isRunning = false;
+        let pomodoroTimerId = null;
+        let isPomodoroRunning = false;
 
         function updatePomodoroDisplay() {
             const m = Math.floor(timeLeft / 60);
@@ -246,35 +469,35 @@
                 `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
-        function toggleTimer() {
-            const btn = document.getElementById('start-btn');
-            if (isRunning) {
-                clearInterval(timerId);
-                btn.innerText = "START";
-            } else {
-                timerId = setInterval(() => {
-                    timeLeft--;
-                    updatePomodoroDisplay();
-                    if (timeLeft <= 0) {
-                        clearInterval(timerId);
-                        alert("Session complete!");
-                        resetTimer();
-                    }
-                }, 1000);
-                btn.innerText = "PAUSE";
-            }
-            isRunning = !isRunning;
+        function startTimer() {
+            if (isPomodoroRunning) return;
+            isPomodoroRunning = true;
+            document.getElementById('status').innerText = "FOCUSING...";
+            pomodoroTimerId = setInterval(() => {
+                timeLeft--;
+                updatePomodoroDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(pomodoroTimerId);
+                    alert("Session complete!");
+                    resetTimer();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (!isPomodoroRunning) return;
+            isPomodoroRunning = false;
+            document.getElementById('status').innerText = "PAUSED";
+            clearInterval(pomodoroTimerId);
         }
 
         function resetTimer() {
-            clearInterval(timerId);
-            isRunning = false;
+            clearInterval(pomodoroTimerId);
+            isPomodoroRunning = false;
             timeLeft = 25 * 60;
             updatePomodoroDisplay();
-            document.getElementById('start-btn').innerText = "START";
+            document.getElementById('status').innerText = "READY?";
         }
-
-        setInterval(updateCountdown, 1000);
     </script>
 </body>
 </html>
